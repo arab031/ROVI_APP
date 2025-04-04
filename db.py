@@ -1,5 +1,6 @@
 import psycopg2
 import pandas as pd
+import streamlit as st
 
 def get_connection():
     return psycopg2.connect(
@@ -16,9 +17,39 @@ def check_database_status():
         cur = conn.cursor()
         cur.execute("SELECT 1")  
         conn.close()
+
+        # Create a two-column layout with the status on the left
+        col1, col2 = st.columns([1, 3])
+
+        with col1:
+            # Display the success message in a card-like structure
+            st.markdown(
+                """
+                <div style='padding: 15px; background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 10px; width: 100%;'>
+                    <strong style='color: #155724;'>🟢 Database Connected</strong>
+                </div>
+                """, 
+                unsafe_allow_html=True
+            )
         return "🟢 Database Connected", "success"
+        
     except Exception:
+        # Create a two-column layout with the status on the left
+        col1, col2 = st.columns([1, 3])
+
+        with col1:
+            # Display the error message in a card-like structure
+            st.markdown(
+                """
+                <div style='padding: 15px; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 10px; width: 100%;'>
+                    <strong style='color: #721c24;'>🔴 Database Disconnected</strong>
+                </div>
+                """, 
+                unsafe_allow_html=True
+            )
         return "🔴 Database Disconnected", "error"
+        
+
     
 # Database connection
 def get_connection():

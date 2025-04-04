@@ -41,7 +41,10 @@ def authenticate(username, password):
 def login_signup():
     """Login and signup page."""
     st.title("Login / Sign Up")
-    action = st.radio("Choose an action:", ["Login", "Sign Up"])
+
+    # Replace radio button with selectbox for better UI
+    action = st.selectbox("Choose an action:", ["Login", "Sign Up"])
+
     username = st.text_input("Username")
     password = st.text_input("Password", type="password")
 
@@ -60,4 +63,4 @@ def login_signup():
                 st.session_state["authenticated"] = True
                 st.session_state["role"] = "user"
                 st.session_state["page"] = "admin_dashboard"
-               
+                st.success("Sign-up successful!")
