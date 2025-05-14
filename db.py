@@ -2,6 +2,8 @@ import psycopg2
 import pandas as pd
 import streamlit as st
 
+import plotly.express as px
+
 def get_connection():
     return psycopg2.connect(
         dbname="ROVI_APP",
