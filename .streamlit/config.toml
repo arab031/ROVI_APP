@@ -1,14 +1,20 @@
 [theme]
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 primaryColor = "#5ab4ac"          
 backgroundColor = "#F5F5F5"       
 secondaryBackgroundColor = "#FBD190"  
 textColor = "#111827"             
 =======
+=======
+>>>>>>> Stashed changes
 primaryColor = "#FF4500"          
 backgroundColor = "#F0FFF0"       
 secondaryBackgroundColor = "#6A5ACD"  
 textColor = "#006400"             
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 font = "sans serif"
 
@@ -16,6 +22,9 @@ font = "sans serif"
 maxUploadSize = 500
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
