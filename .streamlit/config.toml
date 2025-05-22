@@ -1,9 +1,21 @@
 [theme]
-primaryColor = "#4B71FF"
-backgroundColor = "#C6D1E2"
-secondaryBackgroundColor = "#7F91DA"
-textColor = "#1C090A"
+<<<<<<< Updated upstream
+primaryColor = "#5ab4ac"          
+backgroundColor = "#F5F5F5"       
+secondaryBackgroundColor = "#FBD190"  
+textColor = "#111827"             
+=======
+primaryColor = "#FF4500"          
+backgroundColor = "#F0FFF0"       
+secondaryBackgroundColor = "#6A5ACD"  
+textColor = "#006400"             
+>>>>>>> Stashed changes
 font = "sans serif"
 
 [server]
 maxUploadSize = 500
+
+<<<<<<< Updated upstream
+
+=======
+>>>>>>> Stashed changes
