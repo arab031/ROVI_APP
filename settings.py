@@ -1,5 +1,6 @@
 import streamlit as st
 
+
 def settings_page():
     """Settings page where users can configure app settings."""
     st.title("Settings")
