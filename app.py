@@ -3,7 +3,7 @@ import streamlit as st
 # Set page configuration
 st.set_page_config(
     page_title="ROADESSY: IRI Revolution",
-    page_icon="🚗",
+    page_icon= "./icon1.ico",
     layout="wide",
     initial_sidebar_state="expanded"
 )

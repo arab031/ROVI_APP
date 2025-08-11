@@ -10,6 +10,11 @@ from visualization import data_visualization_page
 from folium import Map, CircleMarker
 from streamlit_folium import folium_static
 from folium.plugins import MiniMap
+import geopandas as gpd
+from folium import Map, FeatureGroup, GeoJson, LayerControl, TileLayer
+#from folium.plugins import MiniMap
+from streamlit_folium import folium_static
+from visualization import condition_color
 
 def home_page():
     st.markdown("""
@@ -125,7 +130,7 @@ def home_page():
 
     with col3:
         total_distance = df['travel_distance'].sum()
-        st.markdown(f"<div class='metric-card'><h4>Total Distance</h4><h2>{total_distance:.2f} m</h2></div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='metric-card'><h4>Total Distance</h4><h2>{total_distance:.2f} km</h2></div>", unsafe_allow_html=True)
 
     with col4:
         avg_displacement = df['vert_displacement'].mean()
@@ -133,25 +138,105 @@ def home_page():
 
     st.markdown("</div>", unsafe_allow_html=True)
 
+    # SECTION: Road-Specific Metrics
+    st.markdown("---------------------------------------", unsafe_allow_html=True)
+    st.markdown('<div class="section-title">Road-Specific Metrics</div>', unsafe_allow_html=True)
+
+    selection_option = st.radio("Filter by:", ["Project Name", "File Name"], horizontal=True)
+
+    unique_values = df['project_name'].unique() if selection_option == "Project Name" else df['file_name'].unique()
+    selected_value = st.selectbox(f"Select {selection_option}:", unique_values)
+
+    if selected_value:
+        filtered_df = df[df['project_name'] == selected_value] if selection_option == "Project Name" else df[df['file_name'] == selected_value]
+
+        col5, col6, col7, col8 = st.columns(4)
+
+        with col5:
+            avg_iri = filtered_df['iri'].mean()
+            st.markdown(f"<div class='metric-card'><h4>Average IRI</h4><h2>{avg_iri:.2f}</h2></div>", unsafe_allow_html=True)
+
+        with col6:
+            avg_speed = filtered_df['speed'].mean()
+            st.markdown(f"<div class='metric-card'><h4>Average Speed</h4><h2>{avg_speed:.2f} km/h</h2></div>", unsafe_allow_html=True)
+
+        with col7:
+            total_distance = filtered_df['travel_distance'].sum()
+            st.markdown(f"<div class='metric-card'><h4>Total Distance</h4><h2>{total_distance:.2f} km</h2></div>", unsafe_allow_html=True)
+
+        with col8:
+            avg_displacement = filtered_df['vert_displacement'].mean()
+            st.markdown(f"<div class='metric-card'><h4>Avg Displacement</h4><h2>{avg_displacement:.2f} mm</h2></div>", unsafe_allow_html=True)
+
     # SECTION: Quick Map Preview
     st.markdown('<div class="section-wrapper">', unsafe_allow_html=True)
     st.markdown('<div class="section-title">Quick Map Preview</div>', unsafe_allow_html=True)
 
-    m = Map(location=[6.6885, -1.6244], zoom_start=13, tiles="OpenStreetMap")
-    MiniMap(position="bottomright").add_to(m)
+    if selected_value:
+        try:
+            conn = get_connection()
+            query = f"""
+                SELECT avg_iri, condition, geom
+                FROM iri_segments
+                WHERE geom IS NOT NULL
+                AND {"project_name" if selection_option == "Project Name" else "file_name"} = %s;
+            """
+            gdf_segments = gpd.read_postgis(query, conn, geom_col="geom", params=(selected_value,))
+            conn.close()
 
-    CircleMarker(
-        location=[6.6885, -1.6244],
-        radius=8,
-        color="#FF6F61",
-        fill=True,
-        fill_opacity=0.9,
-        popup="Sample Road Location",
-        tooltip="IRI Point"
-    ).add_to(m)
+            if gdf_segments.empty:
+                st.warning("No segment data found for the selected road.")
+            else:
+                bounds = gdf_segments.total_bounds
+                sw = [bounds[1], bounds[0]]
+                ne = [bounds[3], bounds[2]]
+                center_lat = (bounds[1] + bounds[3]) / 2
+                center_lon = (bounds[0] + bounds[2]) / 2
 
-    folium_static(m, width=900, height=400)
+                m = Map(location=[center_lat, center_lon], zoom_start=14, width="100%", position="relative")
+                TileLayer("OpenStreetMap", name="OpenStreetMap").add_to(m)
+                TileLayer("CartoDB positron", name="Light Theme").add_to(m)
+                TileLayer("Stamen Toner", name="Dark Theme").add_to(m)
+                TileLayer("Stamen Terrain", name="Terrain").add_to(m)
+                #MiniMap().add_to(m)
+
+                for condition, group in gdf_segments.groupby("condition"):
+                    layer = FeatureGroup(name=f"IRI: {condition}", show=True)
+                    for _, row in group.iterrows():
+                        GeoJson(
+                            data=row["geom"].__geo_interface__,
+                            style_function=lambda _, color=condition_color(condition): {
+                                'color': color,
+                                'weight': 5,
+                                'opacity': 0.8
+                            },
+                            tooltip=f"{condition} (IRI: {round(row['avg_iri'], 2) if row['avg_iri'] else 'N/A'})"
+                        ).add_to(layer)
+                    layer.add_to(m)
+
+                LayerControl(collapsed=True, position='topright').add_to(m)
+                m.fit_bounds([sw, ne])
+                folium_static(m, width=1200, height=400)
+                
+                # MINI REPORT BUTTON
+                with st.container():
+                    st.markdown('<div class="section-title">Generate Road Report</div>', unsafe_allow_html=True)
+                    if st.button("Generate Mini Report"):
+                        st.markdown(f"### Summary for: `{selected_value}`")
+                        st.markdown(f"- **Average IRI:** {avg_iri:.2f}")
+                        st.markdown(f"- **Average Speed:** {avg_speed:.2f} km/h")
+                        st.markdown(f"- **Total Distance:** {total_distance:.2f} km")
+                        st.markdown(f"- **Average Vertical Displacement:** {avg_displacement:.2f} mm")
+
+
+        except Exception as e:
+            st.error(f"Error generating map: {e}")
+    else:
+        st.info("Select a project or file to preview its segments.")
+
     st.markdown("</div>", unsafe_allow_html=True)
+
+
 
 def admin_dashboard():
     with st.sidebar:
