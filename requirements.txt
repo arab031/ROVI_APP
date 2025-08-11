@@ -6,3 +6,5 @@ plotly
 psycopg2
 numpy
 hashlib
+shapely
+geopandas
