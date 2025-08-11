@@ -3,8 +3,7 @@ pandas
 folium
 streamlit-folium
 plotly
-psycopg2
 numpy
-hashlib
 shapely
 geopandas
+psycopg2-binary
